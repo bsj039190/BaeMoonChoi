@@ -1,5 +1,7 @@
 import streamlit as st
 from streamlit_chat import message
+import importlib
+
 
 st.set_page_config(page_title="챗봇 UI", page_icon="💬", layout="wide", initial_sidebar_state="expanded")
 
@@ -25,6 +27,24 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+
+# API 연결하는 파이썬코드가 이상함, 클래스를 안쓰고 그냥 def로 해야될수도, gemini.py에서 고쳐야됨
+# 제미나이 API 연결
+def run_start_class(user_input):
+    try:
+        # gemini.py 모듈을 동적으로 임포트
+        gemini_module = importlib.import_module("gemini") # gemini.py 파일을 import합니다.
+
+        # Start 클래스의 인스턴스 생성
+        start_instance = gemini_module.Start() # gemini.py 파일안에 Start 클래스의 인스턴스를 생성합니다.
+
+        # Start 클래스의 run 메서드 호출 (사용자 입력을 인자로 전달)
+        response = start_instance.run(user_input) # Start 클래스 안에 run 함수를 실행하고 user_input을 인자로 전달합니다.
+
+        return response
+    except Exception as e:
+        return f"오류가 발생했습니다: {e}"
+
 
 with st.container():
     st.title("가사 기반 노래 추천 챗봇")
