@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_chat import message
 import importlib
+import gemini as gemini
 
 
 st.set_page_config(page_title="챗봇 UI", page_icon="💬", layout="wide", initial_sidebar_state="expanded")
@@ -23,27 +24,22 @@ st.markdown(
     .fade-up {
         animation: fadeUp 0.8s ease-out;
     }
-    </style>
+
+    .chat-container {
+        height: 500px;  /* 채팅 박스 높이 */
+        overflow-y: auto;  /* 세로 스크롤 가능 */
+        border: 2px solid #ddd;
+        border-radius: 10px;
+        padding: 10px;
+        background-color: #f9f9f9;
+    }
     """,
     unsafe_allow_html=True
 )
 
-# API 연결하는 파이썬코드가 이상함, 클래스를 안쓰고 그냥 def로 해야될수도, gemini.py에서 고쳐야됨
-# 제미나이 API 연결
-def run_start_class(user_input):
-    try:
-        # gemini.py 모듈을 동적으로 임포트
-        gemini_module = importlib.import_module("gemini") # gemini.py 파일을 import합니다.
 
-        # Start 클래스의 인스턴스 생성
-        start_instance = gemini_module.Start() # gemini.py 파일안에 Start 클래스의 인스턴스를 생성합니다.
 
-        # Start 클래스의 run 메서드 호출 (사용자 입력을 인자로 전달)
-        response = start_instance.run(user_input) # Start 클래스 안에 run 함수를 실행하고 user_input을 인자로 전달합니다.
 
-        return response
-    except Exception as e:
-        return f"오류가 발생했습니다: {e}"
 
 
 with st.container():
@@ -79,8 +75,12 @@ if st.session_state.button_display == 0:
         st.session_state.messages.append({"role": "user", "content": user_input})
         message(user_input, is_user=True, key=str(len(st.session_state.messages)))
 
-        # 챗봇 응답 추가 (단순 Echo 응답)
-        bot_response = f"Echo: {user_input}"
+        # 제미나이API 연결 확인, 안돼있으면 연결
+        if "model" not in st.session_state:
+            st.session_state.model = gemini.Main()  # Main 인스턴스를 한 번만 생성
+
+        # 챗봇 응답 추가
+        bot_response = st.session_state.model.run(user_input)  # 세션 상태에서 불러오기
         st.session_state.messages.append({"role": "assistant", "content": bot_response})
         message(bot_response, is_user=False, key=str(len(st.session_state.messages)))
 
@@ -88,8 +88,8 @@ if st.session_state.button_display == 0:
             st.session_state.button_display = 1
             st.rerun()
 
-        # 🚀 자동 스크롤을 위해 `st.stop()` 사용
-        st.stop()  # 코드 실행을 멈추고, 채팅창을 다시 렌더링
+        # 자동 스크롤을 위해 `st.stop()` 사용
+        # st.stop()  # 코드 실행을 멈추고, 채팅창을 다시 렌더링
 
 
 # "추천"이라는 글자를 인식하면 기존의 UI를 없애고
@@ -115,8 +115,12 @@ elif st.session_state.button_display == 1:
             st.session_state.messages.append({"role": "user", "content": user_input})
             message(user_input, is_user=True, key=str(len(st.session_state.messages)))
 
-            # 챗봇 응답 추가 (단순 Echo 응답)
-            bot_response = f"Echo: {user_input}"
+            # API 연결 확인, 안돼있으면 연결
+            if "model" not in st.session_state:
+                st.session_state.model = gemini.Main()  # Main 인스턴스를 한 번만 생성
+
+            # 챗봇 응답 추가
+            bot_response = st.session_state.model.run(user_input)  # 세션 상태에서 불러오기
             st.session_state.messages.append({"role": "assistant", "content": bot_response})
             message(bot_response, is_user=False, key=str(len(st.session_state.messages)))
 
